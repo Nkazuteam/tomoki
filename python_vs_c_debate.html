@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python vs C - 究極のプログラミング言語バトル</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+        
+        .characters {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+        }
+        
+        .character {
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .character.speaking {
+            transform: scale(1.1);
+        }
+        
+        .character img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 5px solid #ccc;
+        }
+        
+        .character.speaking img {
+            border-color: #ff6b6b;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
+        }
+        
+        .character h3 {
+            margin: 10px 0;
+            color: #333;
+        }
+        
+        .dialogue-box {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 120px;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .dialogue-box.takuo {
+            background: linear-gradient(135deg, #3776ab 0%, #ffd343 100%);
+            color: white;
+        }
+        
+        .dialogue-box.c-programmer {
+            background: linear-gradient(135deg, #004482 0%, #a8c0ff 100%);
+            color: white;
+        }
+        
+        .speaker-name {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .dialogue-text {
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        button:hover {
+            background: #5a60d1;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(0,0,0,0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .score {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #333;
+        }
+        
+        .game-over {
+            text-align: center;
+            font-size: 1.5em;
+            color: #ff6b6b;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🐍 Python vs C ⚡ 究極のプログラミング言語バトル</h1>
+        
+        <div class="characters">
+            <div class="character" id="takuo">
+                <div style="width: 150px; height: 150px; background: linear-gradient(135deg, #3776ab, #ffd343); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 60px;">🐍</div>
+                <h3>たくお先生</h3>
+                <p>Python推進過激派</p>
+            </div>
+            
+            <div class="character" id="c-programmer">
+                <div style="width: 150px; height: 150px; background: linear-gradient(135deg, #004482, #a8c0ff); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 60px;">⚡</div>
+                <h3>C言語プログラマ</h3>
+                <p>低レベル言語の守護者</p>
+            </div>
+        </div>
+        
+        <div class="dialogue-box" id="dialogue-box">
+            <div class="speaker-name" id="speaker-name">ゲーム開始</div>
+            <div class="dialogue-text" id="dialogue-text">
+                「次へ」ボタンを押して、史上最高のプログラミング言語論争を始めよう！
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button onclick="nextDialogue()">次へ</button>
+            <button onclick="resetGame()">最初から</button>
+        </div>
+        
+        <div class="score" id="score">
+            笑いポイント: <span id="laugh-points">0</span> 点
+        </div>
+        
+        <div class="game-over" id="game-over">
+            ゲーム終了！最終スコア: <span id="final-score">0</span> 点
+        </div>
+    </div>
+    
+    <script>
+        const dialogues = [
+            {
+                speaker: 'takuo',
+                name: 'たくお先生',
+                text: 'やあ、まだCなんて書いてるの？21世紀だよ？Pythonならprint("Hello World")で済むのに、#include <stdio.h>とか書いてるなんて原始人かな？',
+                laughPoints: 3
+            },
+            {
+                speaker: 'c-programmer',
+                name: 'C言語プログラマ',
+                text: 'ハハハ、Pythonユーザーが速度を語るなんて！君のプログラムが"Hello World"を出力する間に、僕のCプログラムは100万回実行できるよ。',
+                laughPoints: 4
+            },
+            {
+                speaker: 'takuo',
+                name: 'たくお先生',
+                text: 'そうだね、でも君がセグメンテーションフォルトと格闘している間に、僕は機械学習モデルを3つ作って、AIスタートアップを立ち上げて、買収されて引退できるけどね。',
+                laughPoints: 5
+            },
+            {
+                speaker: 'c-programmer',
+                name: 'C言語プログラマ',
+                text: 'メモリ管理？それは大人のプログラマーの仕事だよ。ガベージコレクションに頼ってる言語は、まるでママに部屋を片付けてもらってる子供みたいだね。',
+                laughPoints: 4
+            },
+            {
+                speaker: 'takuo',
+                name: 'たくお先生',
+                text: 'なるほど、だから君のプログラムはいつもメモリリークして、NASAのロケットを墜落させそうになるんだね。僕はその間にimport antigravityで本当に飛べるけど。',
+                laughPoints: 5
+            },
+            {
+                speaker: 'c-programmer',
+                name: 'C言語プログラマ',
+                text: 'Pythonのインデント？スペースかタブかで戦争が起きるなんて、まるで宗教戦争だね。僕らは{}で平和に暮らしてるよ。',
+                laughPoints: 3
+            },
+            {
+                speaker: 'takuo',
+                name: 'たくお先生',
+                text: 'そうか、だから君のコードは}}}}}}}}みたいに見えて、まるで怒ったASCIIアートなんだね。Pythonのコードは詩のように美しいけど。',
+                laughPoints: 4
+            },
+            {
+                speaker: 'c-programmer',
+                name: 'C言語プログラマ',
+                text: 'Pythonで書かれたOSを見せてくれる？あ、ないの？すべてのPythonインタープリタがCで書かれてるって知ってる？君たちは僕らの上で踊ってるだけさ。',
+                laughPoints: 5
+            },
+            {
+                speaker: 'takuo',
+                name: 'たくお先生',
+                text: 'そうだね、でも僕らは踊りながら年収1000万円稼いでるけど、君はまだポインタの算術と踊ってるだけでしょ？*(ptr++)++ = --(*ptr)--; これ、呪文？',
+                laughPoints: 5
+            },
+            {
+                speaker: 'c-programmer',
+                name: 'C言語プログラマ',
+                text: '型安全性？Pythonでは変数が勝手に型を変えるんでしょ？まるでトランスフォーマーだね。a = 1; a = "hello"; a = [1,2,3]; 変数の正体は誰も知らない！',
+                laughPoints: 4
+            },
+            {
+                speaker: 'takuo',
+                name: 'たくお先生',
+                text: 'それをダックタイピングって言うんだよ。アヒルのように歩いて、アヒルのように鳴くなら、それはアヒルさ。君みたいにint* ptr = (int*)malloc(sizeof(int));とか書く必要はないんだ。',
+                laughPoints: 3
+            },
+            {
+                speaker: 'c-programmer',
+                name: 'C言語プログラマ',
+                text: '最後に聞くけど、PythonでリアルタイムOSは作れる？ゲームエンジンは？コンパイラは？',
+                laughPoints: 3
+            },
+            {
+                speaker: 'takuo',
+                name: 'たくお先生',
+                text: '最後に聞くけど、Cで1行でWebスクレイピングできる？機械学習できる？データ分析できる？あ、できないの？じゃあ#include <python.h>って書いてみたら？',
+                laughPoints: 5
+            }
+        ];
+        
+        let currentIndex = -1;
+        let laughPoints = 0;
+        
+        function nextDialogue() {
+            currentIndex++;
+            
+            if (currentIndex >= dialogues.length) {
+                endGame();
+                return;
+            }
+            
+            const dialogue = dialogues[currentIndex];
+            updateDialogue(dialogue);
+            laughPoints += dialogue.laughPoints;
+            updateScore();
+        }
+        
+        function updateDialogue(dialogue) {
+            const dialogueBox = document.getElementById('dialogue-box');
+            const speakerName = document.getElementById('speaker-name');
+            const dialogueText = document.getElementById('dialogue-text');
+            
+            // Remove previous speaker classes
+            dialogueBox.classList.remove('takuo', 'c-programmer');
+            document.getElementById('takuo').classList.remove('speaking');
+            document.getElementById('c-programmer').classList.remove('speaking');
+            
+            // Add current speaker class
+            dialogueBox.classList.add(dialogue.speaker);
+            document.getElementById(dialogue.speaker).classList.add('speaking');
+            
+            speakerName.textContent = dialogue.name;
+            dialogueText.textContent = dialogue.text;
+        }
+        
+        function updateScore() {
+            document.getElementById('laugh-points').textContent = laughPoints;
+        }
+        
+        function resetGame() {
+            currentIndex = -1;
+            laughPoints = 0;
+            updateScore();
+            
+            const dialogueBox = document.getElementById('dialogue-box');
+            dialogueBox.classList.remove('takuo', 'c-programmer');
+            document.getElementById('takuo').classList.remove('speaking');
+            document.getElementById('c-programmer').classList.remove('speaking');
+            
+            document.getElementById('speaker-name').textContent = 'ゲーム開始';
+            document.getElementById('dialogue-text').textContent = '「次へ」ボタンを押して、史上最高のプログラミング言語論争を始めよう！';
+            document.getElementById('game-over').style.display = 'none';
+        }
+        
+        function endGame() {
+            document.getElementById('final-score').textContent = laughPoints;
+            document.getElementById('game-over').style.display = 'block';
+            
+            const dialogueBox = document.getElementById('dialogue-box');
+            dialogueBox.classList.remove('takuo', 'c-programmer');
+            document.getElementById('takuo').classList.remove('speaking');
+            document.getElementById('c-programmer').classList.remove('speaking');
+            
+            document.getElementById('speaker-name').textContent = 'ゲーム終了';
+            document.getElementById('dialogue-text').textContent = '素晴らしい論争でした！どちらの言語も素晴らしいですが、この論争は永遠に続くでしょう...';
+        }
+    </script>
+</body>
+</html>
